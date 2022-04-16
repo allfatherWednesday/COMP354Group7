@@ -39,6 +39,23 @@ public class Splits {
 		return split;
 
 	}
+	
+	public static List<CoordFull> generateTimeSplit(List<CoordFull> l, int secondsStart, int secondsEnd) {
+		// Time format is ISO 8601. Example: "2021-07-10T13:33:52.562Z"
+		OffsetDateTime startTime = OffsetDateTime.parse(l.get(0).time);
+		OffsetDateTime endTime;
+		List<CoordFull> split = new ArrayList<CoordFull>();
+		
+		for (int i = 0; i < l.size(); i++) {
+			endTime = OffsetDateTime.parse(l.get(i).time);
+			if (ChronoUnit.SECONDS.between(startTime, endTime) < secondsEnd && ChronoUnit.SECONDS.between(startTime, endTime) >= secondsStart) {
+				split.add(l.get(i));
+			}
+		}
+
+		return split;
+
+	}
 
 	public static List<CoordFull> generateDistanceSplit(List<CoordFull> l, int m){
 		
@@ -59,6 +76,38 @@ public class Splits {
 				return split;
 			}else {
 				split.add(l.get(i));
+			}
+			startPointLat = l.get(i).lat;
+			startPointLon = l.get(i).lon;
+		}
+		
+		return split;
+		
+		
+	}
+	
+	//mStart - meter mark at which your split starts, mEnd - meter mark at which your split ends
+public static List<CoordFull> generateDistanceSplit(List<CoordFull> l, int mStart, int mEnd){
+		
+		List<CoordFull> split = new ArrayList<CoordFull>();
+		
+		double startPointLat = l.get(0).lat;
+		double startPointLon = l.get(0).lon;
+		double endPointLat;
+		double endPointLon;
+		double accumulatedDistance = 0;
+		
+		for(int i=1; i<l.size(); i++) {
+			endPointLat = l.get(i).lat;
+			endPointLon = l.get(i).lon;
+			double distanceBtw2Pts = FlatEarthDist.distance(startPointLat, startPointLon, endPointLat, endPointLon);
+			accumulatedDistance += distanceBtw2Pts;
+			if(accumulatedDistance>=mEnd) {
+				return split;
+			}else {
+				if(accumulatedDistance>=mStart) {
+					split.add(l.get(i));
+				}
 			}
 			startPointLat = l.get(i).lat;
 			startPointLon = l.get(i).lon;
